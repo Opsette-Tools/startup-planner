@@ -1,12 +1,30 @@
 // Seeded startup cost data per industry.
-// category: 'one-time' | 'recurring'
-// frequency (recurring only): 'monthly' | 'annual'
 
-const o = (name, amount) => ({ name, category: 'one-time', amount });
-const m = (name, amount) => ({ name, category: 'recurring', frequency: 'monthly', amount });
-const a = (name, amount) => ({ name, category: 'recurring', frequency: 'annual', amount });
+type SeedExpense =
+  | { name: string; category: 'one-time'; amount: number }
+  | { name: string; category: 'recurring'; frequency: 'monthly' | 'annual'; amount: number };
 
-export const industries = [
+export interface Industry {
+  id: string;
+  label: string;
+  expenses: SeedExpense[];
+}
+
+const o = (name: string, amount: number): SeedExpense => ({ name, category: 'one-time', amount });
+const m = (name: string, amount: number): SeedExpense => ({
+  name,
+  category: 'recurring',
+  frequency: 'monthly',
+  amount,
+});
+const a = (name: string, amount: number): SeedExpense => ({
+  name,
+  category: 'recurring',
+  frequency: 'annual',
+  amount,
+});
+
+export const industries: Industry[] = [
   {
     id: 'freelance',
     label: 'Freelance / Consulting',
