@@ -1,29 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { EstimatorApp } from "../components/estimator/EstimatorApp";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Startup Cost Estimator — Opsette" },
+      {
+        name: "description",
+        content:
+          "Build a realistic startup budget by industry. Edit line items, see one-time vs recurring costs, and export a clean PDF summary.",
+      },
+      { property: "og:title", content: "Startup Cost Estimator — Opsette" },
+      {
+        property: "og:description",
+        content:
+          "Industry-seeded startup budgeting tool with editable line items and PDF export.",
+      },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
+  return <EstimatorApp />;
 }
