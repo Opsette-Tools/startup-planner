@@ -48,11 +48,11 @@ export function EstimatorApp() {
       theme={{
         algorithm: antTheme.defaultAlgorithm,
         token: {
-          colorPrimary: '#1f2937',
-          colorInfo: '#1f2937',
+          colorPrimary: '#2f4f46',
+          colorInfo: '#2f4f46',
           borderRadius: 6,
           fontFamily:
-            "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+            "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
         },
         components: {
           Table: { headerBg: '#f9fafb', headerColor: '#374151' },

@@ -1,0 +1,17 @@
+{
+  "name": "StartUp Planner — Opsette",
+  "short_name": "Startup",
+  "description": "Build a realistic startup budget by industry — edit line items, split one-time vs recurring, and export a clean PDF.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fafafa",
+  "theme_color": "#2f4f46",
+  "categories": ["productivity", "business", "finance"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

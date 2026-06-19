@@ -35,7 +35,7 @@ export function generatePdf(opts: {
 
   const baseTableOpts = {
     theme: 'grid' as const,
-    headStyles: { fillColor: [31, 41, 55] as [number, number, number], textColor: 255 },
+    headStyles: { fillColor: [47, 79, 70] as [number, number, number], textColor: 255 },
     styles: { fontSize: 10, cellPadding: 6 },
     columnStyles: { 1: { halign: 'right' as const, cellWidth: 110 } },
     margin: { left: 40, right: 40 },
