@@ -11,6 +11,7 @@ export interface Expense {
 
 export interface EstimatorState {
   businessName: string;
+  documentTitle: string;
   industryId: string | null;
   expenses: Expense[];
 }

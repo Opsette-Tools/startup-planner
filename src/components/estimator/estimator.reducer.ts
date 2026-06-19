@@ -2,14 +2,18 @@ import type { EstimatorState, Expense } from './estimator.types';
 
 export type Action =
   | { type: 'SET_BUSINESS_NAME'; name: string }
+  | { type: 'SET_DOCUMENT_TITLE'; title: string }
   | { type: 'SET_INDUSTRY'; industryId: string; expenses: Expense[] }
   | { type: 'UPDATE_EXPENSE'; id: string; patch: Partial<Expense> }
   | { type: 'ADD_EXPENSE'; expense: Expense }
   | { type: 'REMOVE_EXPENSE'; id: string }
   | { type: 'RESET' };
 
+export const DEFAULT_DOCUMENT_TITLE = 'Startup Cost Estimate';
+
 export const initialState: EstimatorState = {
   businessName: '',
+  documentTitle: DEFAULT_DOCUMENT_TITLE,
   industryId: null,
   expenses: [],
 };
@@ -18,6 +22,8 @@ export function estimatorReducer(state: EstimatorState, action: Action): Estimat
   switch (action.type) {
     case 'SET_BUSINESS_NAME':
       return { ...state, businessName: action.name };
+    case 'SET_DOCUMENT_TITLE':
+      return { ...state, documentTitle: action.title };
     case 'SET_INDUSTRY':
       return { ...state, industryId: action.industryId, expenses: action.expenses };
     case 'UPDATE_EXPENSE':

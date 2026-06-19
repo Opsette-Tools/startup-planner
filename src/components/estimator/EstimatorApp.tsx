@@ -1,5 +1,7 @@
 import { useReducer, useMemo } from 'react';
-import { ConfigProvider, Row, Col, Card, Typography, Modal, theme as antTheme } from 'antd';
+import { Row, Col, Card, Typography, Modal } from 'antd';
+import { ThemeProvider } from '@/lib/theme';
+import Shell from '@/components/Shell';
 import { estimatorReducer, initialState } from './estimator.reducer';
 import { industries } from '../../data/industries';
 import type { Expense } from './estimator.types';
@@ -18,7 +20,7 @@ function seedExpensesFor(industryId: string): Expense[] {
   return ind.expenses.map((e) => ({ ...e, id: crypto.randomUUID() }));
 }
 
-export function EstimatorApp() {
+function Estimator() {
   const [state, dispatch] = useReducer(estimatorReducer, initialState);
 
   const industryLabel = useMemo(
@@ -44,83 +46,62 @@ export function EstimatorApp() {
   };
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: antTheme.defaultAlgorithm,
-        token: {
-          colorPrimary: '#2f4f46',
-          colorInfo: '#2f4f46',
-          borderRadius: 6,
-          fontFamily:
-            "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-        },
-        components: {
-          Table: { headerBg: '#f9fafb', headerColor: '#374151' },
-          Card: { headerBg: '#fafafa' },
-        },
-      }}
-    >
-      <div className="estimator-shell">
-        <header className="estimator-topbar">
-          <div className="estimator-topbar-inner">
-            <div className="estimator-brand">
-              <span className="estimator-brand-mark">Opsette</span>
-              <span className="estimator-brand-divider">/</span>
-              <span className="estimator-brand-module">Startup Cost Estimator</span>
+    <main className="estimator-main">
+      <BusinessHeader
+        businessName={state.businessName}
+        documentTitle={state.documentTitle}
+        industryId={state.industryId}
+        onBusinessNameChange={(name) => dispatch({ type: 'SET_BUSINESS_NAME', name })}
+        onDocumentTitleChange={(title) => dispatch({ type: 'SET_DOCUMENT_TITLE', title })}
+        onIndustryChange={handleIndustryChange}
+      />
+
+      <Row gutter={[24, 24]}>
+        <Col xs={24} lg={16}>
+          <Card
+            title="Expenses"
+            variant="outlined"
+            styles={{ body: { padding: 0 } }}
+            extra={
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Click any field to edit
+              </Text>
+            }
+          >
+            <div style={{ padding: 16, borderBottom: '1px solid #f0f0f0' }}>
+              <AddExpenseForm onAdd={(expense) => dispatch({ type: 'ADD_EXPENSE', expense })} />
             </div>
-            <Text type="secondary" style={{ fontSize: 13 }}>
-              Stateless tool — nothing is saved. Export a PDF to keep your numbers.
-            </Text>
-          </div>
-        </header>
-
-        <main className="estimator-main">
-          <BusinessHeader
-            businessName={state.businessName}
-            industryId={state.industryId}
-            onBusinessNameChange={(name) => dispatch({ type: 'SET_BUSINESS_NAME', name })}
-            onIndustryChange={handleIndustryChange}
-          />
-
-          <Row gutter={[24, 24]}>
-            <Col xs={24} lg={16}>
-              <Card
-                title="Expenses"
-                variant="outlined"
-                styles={{ body: { padding: 0 } }}
-                extra={
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    Click any field to edit
-                  </Text>
-                }
-              >
-                <div style={{ padding: 16, borderBottom: '1px solid #f0f0f0' }}>
-                  <AddExpenseForm
-                    onAdd={(expense) => dispatch({ type: 'ADD_EXPENSE', expense })}
-                  />
-                </div>
-                <ExpenseTable
-                  expenses={state.expenses}
-                  onUpdate={(id, patch) => dispatch({ type: 'UPDATE_EXPENSE', id, patch })}
-                  onRemove={(id) => dispatch({ type: 'REMOVE_EXPENSE', id })}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} lg={8}>
-              <SummaryPanel
+            <ExpenseTable
+              expenses={state.expenses}
+              onUpdate={(id, patch) => dispatch({ type: 'UPDATE_EXPENSE', id, patch })}
+              onRemove={(id) => dispatch({ type: 'REMOVE_EXPENSE', id })}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} lg={8}>
+          <SummaryPanel
+            expenses={state.expenses}
+            footer={
+              <ExportButton
+                businessName={state.businessName}
+                documentTitle={state.documentTitle}
+                industryLabel={industryLabel}
                 expenses={state.expenses}
-                footer={
-                  <ExportButton
-                    businessName={state.businessName}
-                    industryLabel={industryLabel}
-                    expenses={state.expenses}
-                  />
-                }
               />
-            </Col>
-          </Row>
-        </main>
-      </div>
-    </ConfigProvider>
+            }
+          />
+        </Col>
+      </Row>
+    </main>
+  );
+}
+
+export function EstimatorApp() {
+  return (
+    <ThemeProvider>
+      <Shell>
+        <Estimator />
+      </Shell>
+    </ThemeProvider>
   );
 }
