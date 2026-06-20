@@ -13,12 +13,17 @@ const MUTED: [number, number, number] = [110, 110, 110];
 
 const MARGIN = 40;
 
+export interface GeneratedPdf {
+  blob: Blob;
+  fileName: string;
+}
+
 export async function generatePdf(opts: {
   businessName: string;
   documentTitle: string;
   industryLabel: string;
   expenses: Expense[];
-}) {
+}): Promise<GeneratedPdf> {
   const { businessName, documentTitle, industryLabel, expenses } = opts;
   const doc = new jsPDF({ unit: 'pt', format: 'letter' });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -98,32 +103,65 @@ export async function generatePdf(opts: {
   section('Monthly Recurring', monthly);
   section('Annual Recurring', annual);
 
-  // Summary table.
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(GREEN[0], GREEN[1], GREEN[2]);
-  doc.text('Summary', MARGIN, cursorY);
-  doc.setTextColor(0);
-  cursorY += 8;
+  // --- Summary: a standout block, not just another line-item table. ---
+  // If the block would overflow the current page, start it fresh on the next.
+  const SUMMARY_BLOCK_HEIGHT = 24 + 3 * 22 + 16 + 56; // heading + 3 stat rows + gap + hero band
+  if (cursorY + SUMMARY_BLOCK_HEIGHT > pageHeight - 70) {
+    doc.addPage();
+    cursorY = 80;
+  }
 
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(GREEN[0], GREEN[1], GREEN[2]);
+  doc.text('Budget Summary', MARGIN, cursorY);
+  doc.setTextColor(0);
+  cursorY += 12;
+
+  const contentWidth = pageWidth - MARGIN * 2;
+
+  // Three sub-totals in a tinted grid — clearly secondary to the hero band below.
   autoTable(doc, {
-    ...baseTableOpts,
     startY: cursorY,
-    head: [['Total', 'Amount']],
+    theme: 'plain' as const,
+    styles: { fontSize: 11, cellPadding: { top: 7, bottom: 7, left: 12, right: 12 } },
+    columnStyles: { 1: { halign: 'right' as const, cellWidth: 150, fontStyle: 'bold' } },
+    margin: { left: MARGIN, right: MARGIN },
     body: [
-      ['Total One-Time Costs', fmt(totals.oneTime)],
-      ['Total Monthly Recurring', fmt(totals.monthly)],
-      ['Total Annual Recurring', fmt(totals.annual)],
-      ['Year 1 Total', fmt(totals.year1)],
+      ['One-Time Costs', fmt(totals.oneTime)],
+      ['Monthly Recurring', fmt(totals.monthly)],
+      ['Annual Recurring', fmt(totals.annual)],
     ],
     didParseCell: (data) => {
-      if (data.row.index === 3) {
-        data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [233, 239, 236];
-        data.cell.styles.textColor = GREEN;
-      }
+      data.cell.styles.fillColor = [243, 247, 245];
+      data.cell.styles.lineColor = [255, 255, 255];
+      data.cell.styles.lineWidth = 1.5;
+      if (data.column.index === 0) data.cell.styles.textColor = MUTED;
+      else data.cell.styles.textColor = [40, 40, 40];
     },
   });
+
+  // @ts-expect-error autotable adds lastAutoTable to doc
+  cursorY = doc.lastAutoTable.finalY + 16;
+
+  // Hero band: full-width filled deep-green panel for the headline number.
+  const bandH = 56;
+  doc.setFillColor(GREEN[0], GREEN[1], GREEN[2]);
+  doc.roundedRect(MARGIN, cursorY, contentWidth, bandH, 6, 6, 'F');
+
+  const bandMidY = cursorY + bandH / 2;
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Year 1 Total', MARGIN + 18, bandMidY - 4);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text('One-time + (monthly x 12) + annual', MARGIN + 18, bandMidY + 11);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(26);
+  doc.text(fmt(totals.year1), pageWidth - MARGIN - 18, bandMidY + 6, { align: 'right' });
+  doc.setTextColor(0);
 
   // --- Footer band on every page: rule + Opsette logo bottom-right ---
   const pageCount = doc.getNumberOfPages();
@@ -152,5 +190,10 @@ export async function generatePdf(opts: {
   }
 
   const safeName = (businessName || 'startup-costs').replace(/[^a-z0-9-_]+/gi, '-').toLowerCase();
-  doc.save(`${safeName}-startup-costs.pdf`);
+  const fileName = `${safeName}-startup-costs.pdf`;
+
+  // Embedding the filename lets the browser's PDF viewer suggest it on Save.
+  doc.setProperties({ title: fileName });
+
+  return { blob: doc.output('blob'), fileName };
 }

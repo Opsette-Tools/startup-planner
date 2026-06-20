@@ -16,11 +16,29 @@ export function ExportButton({ businessName, documentTitle, industryLabel, expen
   const disabled = expenses.length === 0;
 
   const handle = async () => {
+    // Open the tab synchronously inside the click handler so popup blockers
+    // allow it — we point it at the PDF once generation finishes.
+    const previewTab = window.open('', '_blank');
+
     setLoading(true);
     try {
-      await generatePdf({ businessName, documentTitle, industryLabel, expenses });
+      const { blob } = await generatePdf({ businessName, documentTitle, industryLabel, expenses });
+      const url = URL.createObjectURL(blob);
+
+      if (previewTab) {
+        // Show the PDF in the browser's native viewer — review first, then
+        // use the viewer's own Save/Print. Nothing hits disk until you choose.
+        previewTab.location.href = url;
+      } else {
+        // Popup was blocked — fall back to opening in the current context.
+        window.location.href = url;
+      }
+
+      // Release the object URL after the viewer has had time to load it.
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (err) {
       console.error(err);
+      previewTab?.close();
       message.error('Could not generate PDF.');
     } finally {
       setLoading(false);
@@ -37,7 +55,7 @@ export function ExportButton({ businessName, documentTitle, industryLabel, expen
       loading={loading}
       disabled={disabled}
     >
-      Export PDF Summary
+      Preview &amp; Save PDF
     </Button>
   );
 }
