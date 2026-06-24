@@ -3,6 +3,7 @@ import { Button, message } from 'antd';
 import { FilePdfOutlined } from '@ant-design/icons';
 import type { Expense } from './estimator.types';
 import { generatePdf } from './pdf/generatePdf';
+import { haptic } from '@/lib/haptics';
 
 interface Props {
   businessName: string;
@@ -16,6 +17,7 @@ export function ExportButton({ businessName, documentTitle, industryLabel, expen
   const disabled = expenses.length === 0;
 
   const handle = async () => {
+    haptic('success');
     // Open the tab synchronously inside the click handler so popup blockers
     // allow it — we point it at the PDF once generation finishes.
     const previewTab = window.open('', '_blank');

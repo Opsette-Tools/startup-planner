@@ -1,8 +1,8 @@
-import { Table, Input, InputNumber, Select, Button, Tag, Empty, Grid, Space, Typography } from 'antd';
+import { Table, Input, InputNumber, Select, Button, Tag, Empty, Grid, Space } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 import type { Expense } from './estimator.types';
-
-const { Text } = Typography;
+import { KIND_OPTIONS, kindOf, kindToFields, formatAmount, parseAmount } from './expenseKind';
+import { haptic } from '@/lib/haptics';
 
 interface Props {
   expenses: Expense[];
@@ -10,21 +10,18 @@ interface Props {
   onRemove: (id: string) => void;
 }
 
-const categoryOptions = [
-  { value: 'one-time' as const, label: <Tag color="geekblue">One-Time</Tag> },
-  { value: 'recurring' as const, label: <Tag color="green">Recurring</Tag> },
-];
+// One dropdown, three kinds — the single source of an expense's timing.
+const KIND_TAG_COLOR: Record<string, string> = {
+  'one-time': 'geekblue',
+  monthly: 'green',
+  annual: 'gold',
+};
 
-const frequencyOptions = [
-  { value: 'monthly' as const, label: 'Monthly' },
-  { value: 'annual' as const, label: 'Annual' },
-];
+const kindTagOptions = KIND_OPTIONS.map((o) => ({
+  value: o.value,
+  label: <Tag color={KIND_TAG_COLOR[o.value]}>{o.label}</Tag>,
+}));
 
-const formatAmount = (v: string | number | undefined): string =>
-  `$ ${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-const parseAmount = (v: string | undefined): 0 =>
-  Number((v ?? '').replace(/\$\s?|,/g, '')) as 0;
 
 export function ExpenseTable({ expenses, onUpdate, onRemove }: Props) {
   const screens = Grid.useBreakpoint();
@@ -43,25 +40,12 @@ export function ExpenseTable({ expenses, onUpdate, onRemove }: Props) {
     // Each line item becomes a self-contained card so fields stay full-width
     // and editable without horizontal scrolling at ~375px.
     return (
-      <div style={{ padding: 16 }}>
+      <div className="estimator-mobile-list">
         <Space direction="vertical" size={12} style={{ width: '100%' }}>
           {expenses.map((record) => (
-            <div
-              key={record.id}
-              style={{
-                border: '1px solid #f0f0f0',
-                borderRadius: 8,
-                padding: 12,
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 8,
-                }}
-              >
+            <div key={record.id} className="estimator-mobile-card">
+              {/* Row 1: line-item name + delete */}
+              <div className="estimator-mobile-card__top">
                 <Input
                   placeholder="Line item"
                   value={record.name}
@@ -72,43 +56,31 @@ export function ExpenseTable({ expenses, onUpdate, onRemove }: Props) {
                   type="text"
                   icon={<DeleteOutlined />}
                   danger
-                  onClick={() => onRemove(record.id)}
+                  onClick={() => {
+                    haptic('warning');
+                    onRemove(record.id);
+                  }}
                   aria-label="Remove line item"
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: 8 }}>
+              {/* Row 2: kind + amount — a stable two-field row that never
+                  changes shape regardless of which kind is selected. */}
+              <div className="estimator-mobile-card__grid">
                 <Select
-                  value={record.category}
-                  onChange={(v) => onUpdate(record.id, { category: v })}
-                  options={categoryOptions}
-                  style={{ flex: 1 }}
+                  value={kindOf(record)}
+                  onChange={(v) => {
+                    haptic('tap');
+                    onUpdate(record.id, kindToFields(v));
+                  }}
+                  options={kindTagOptions}
+                  style={{ width: '100%' }}
                 />
-                {record.category === 'recurring' && (
-                  <Select
-                    value={record.frequency ?? 'monthly'}
-                    onChange={(v) => onUpdate(record.id, { frequency: v })}
-                    options={frequencyOptions}
-                    style={{ flex: 1 }}
-                  />
-                )}
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginTop: 8,
-                }}
-              >
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  Amount
-                </Text>
                 <InputNumber
                   value={record.amount}
                   min={0}
-                  style={{ width: 160, textAlign: 'right' }}
+                  controls={false}
+                  style={{ width: '100%' }}
                   formatter={formatAmount}
                   parser={parseAmount}
                   onChange={(v) =>
@@ -129,7 +101,7 @@ export function ExpenseTable({ expenses, onUpdate, onRemove }: Props) {
       rowKey="id"
       pagination={false}
       size="middle"
-      scroll={{ x: 720 }}
+      scroll={{ x: 600 }}
       columns={[
         {
           title: 'Item',
@@ -144,37 +116,22 @@ export function ExpenseTable({ expenses, onUpdate, onRemove }: Props) {
           ),
         },
         {
-          title: 'Category',
+          title: 'Timing',
           dataIndex: 'category',
-          key: 'category',
-          width: 150,
+          key: 'kind',
+          width: 160,
           render: (_, record) => (
             <Select
-              value={record.category}
-              onChange={(v) => onUpdate(record.id, { category: v })}
+              value={kindOf(record)}
+              onChange={(v) => {
+                haptic('tap');
+                onUpdate(record.id, kindToFields(v));
+              }}
               variant="borderless"
               style={{ width: '100%' }}
-              options={categoryOptions}
+              options={kindTagOptions}
             />
           ),
-        },
-        {
-          title: 'Frequency',
-          dataIndex: 'frequency',
-          key: 'frequency',
-          width: 130,
-          render: (_, record) =>
-            record.category === 'recurring' ? (
-              <Select
-                value={record.frequency ?? 'monthly'}
-                onChange={(v) => onUpdate(record.id, { frequency: v })}
-                variant="borderless"
-                style={{ width: '100%' }}
-                options={frequencyOptions}
-              />
-            ) : (
-              <span style={{ color: '#9ca3af' }}>—</span>
-            ),
         },
         {
           title: 'Amount',
@@ -203,7 +160,10 @@ export function ExpenseTable({ expenses, onUpdate, onRemove }: Props) {
               type="text"
               icon={<DeleteOutlined />}
               danger
-              onClick={() => onRemove(record.id)}
+              onClick={() => {
+                haptic('warning');
+                onRemove(record.id);
+              }}
               aria-label="Remove line item"
             />
           ),

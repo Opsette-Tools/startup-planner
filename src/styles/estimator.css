@@ -1,18 +1,25 @@
+/**
+ * Estimator layout + summary styling.
+ *
+ * All sizing here pulls from the global tokens in tokens.css — no raw pixel
+ * literals for anything that should scale between phone and desktop.
+ */
+
 .estimator-main {
-  max-width: 1200px;
+  max-width: var(--ops-page-max);
   margin: 0 auto;
-  padding: 24px;
+  padding: var(--ops-page-pad);
 }
 
 .estimator-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: var(--ops-radius);
 }
 
 .estimator-summary-sticky {
   position: sticky;
-  top: 24px;
+  top: var(--ops-space-xl);
 }
 
 @media (max-width: 991px) {
@@ -22,13 +29,16 @@
 }
 
 .estimator-section-title {
-  margin: 0 0 4px 0 !important;
+  margin: 0 0 var(--ops-space-xs) 0 !important;
 }
 
 .estimator-section-sub {
   display: block;
-  margin-bottom: 16px;
+  margin-bottom: var(--ops-space-lg);
+  font-size: var(--ops-fs-sub);
 }
+
+/* ---- Summary panel lines ------------------------------------------------- */
 
 .estimator-summary-line {
   display: flex;
@@ -36,6 +46,15 @@
   justify-content: space-between;
   padding: 7px 0;
   border-bottom: 1px solid #f0f0f0;
+}
+
+.estimator-summary-line__label {
+  font-size: calc(var(--ops-fs-caption) + 2px);
+}
+
+.estimator-summary-line__value {
+  font-size: calc(var(--ops-fs-body) + 2px);
+  font-variant-numeric: tabular-nums;
 }
 
 .estimator-summary-total {
@@ -46,4 +65,151 @@
   padding-top: 14px;
   border-top: 2px solid #2f4f46;
   margin-bottom: 2px;
+}
+
+.estimator-summary-total__label {
+  font-size: calc(var(--ops-fs-caption) + 2px);
+  color: #2f4f46;
+}
+
+.estimator-summary-total__value {
+  font-size: var(--ops-fs-total);
+  color: #2f4f46;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.estimator-summary-formula {
+  font-size: calc(var(--ops-fs-fine) + 1px);
+  display: block;
+}
+
+/* ---- Generic helpers reused across estimator components ------------------ */
+
+.estimator-field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: var(--ops-fs-label);
+}
+
+/* Industry picker: big, easy-to-hit option rows. We have the vertical space,
+   so each industry gets a generous tappable row with larger text. */
+.industry-dropdown .ant-select-item {
+  min-height: 52px;
+  padding: 12px 16px;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+}
+
+/* ---- Sticky mobile Year-1 total bar -------------------------------------- */
+/* Pinned to the bottom of the viewport on phones so the running total stays
+   visible during the long scroll. Tapping it jumps to the full summary. */
+.estimator-total-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  background: #2f4f46;
+  color: #fff;
+  /* Extra bottom padding respects the iOS home-bar safe area. */
+  padding: 14px var(--ops-page-pad);
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.18);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.estimator-total-bar__label {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.85;
+  letter-spacing: 0.01em;
+}
+
+.estimator-total-bar__value {
+  margin-left: auto;
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.estimator-total-bar__chevron {
+  font-size: 20px;
+  opacity: 0.85;
+}
+
+.estimator-total-bar:active {
+  background: #28443c;
+}
+
+/* Reserve space so the fixed bar never covers the footer / last content. */
+@media (max-width: 991px) {
+  .estimator-main {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.estimator-card-hint {
+  font-size: var(--ops-fs-fine);
+}
+
+.estimator-addrow {
+  padding: var(--ops-space-lg);
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Category + amount share a row in the add form — same proportion as the
+   saved expense cards below, so the whole panel reads as one consistent grid. */
+.estimator-addrow__pair {
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: var(--ops-space-sm);
+}
+
+.estimator-addrow__pair .ant-input-number-input {
+  text-align: right;
+}
+
+/* ---- Mobile line-item cards (shown below the md breakpoint) -------------- */
+
+.estimator-mobile-list {
+  padding: var(--ops-space-lg);
+}
+
+.estimator-mobile-card {
+  border: 1px solid #f0f0f0;
+  border-radius: var(--ops-radius);
+  padding: var(--ops-space-md);
+}
+
+.estimator-mobile-card__top {
+  display: flex;
+  align-items: center;
+  gap: var(--ops-space-sm);
+  margin-bottom: var(--ops-space-sm);
+}
+
+/* Category + amount share one row. Category gets a bit more room; amount is
+   sized to comfortably hold "$ 28,000" and right-aligns its digits. */
+.estimator-mobile-card__grid {
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: var(--ops-space-sm);
+}
+
+.estimator-mobile-card__grid .ant-input-number-input {
+  text-align: right;
+}
+
+.estimator-hint {
+  font-size: var(--ops-fs-fine);
+  display: block;
+  margin-top: 6px;
 }

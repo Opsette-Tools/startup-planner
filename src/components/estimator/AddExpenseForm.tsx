@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { Button, Grid, Input, InputNumber, Select, Space, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import type { Category, Expense, Frequency } from './estimator.types';
+import type { Expense } from './estimator.types';
+import { KIND_OPTIONS, kindToFields, formatAmount, parseAmount, type ExpenseKind } from './expenseKind';
+import { haptic } from '@/lib/haptics';
+import { uuid } from '@/lib/uuid';
 
 interface Props {
   onAdd: (e: Expense) => void;
@@ -12,24 +15,25 @@ export function AddExpenseForm({ onAdd }: Props) {
   const isMobile = !screens.md;
 
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<Category>('one-time');
-  const [frequency, setFrequency] = useState<Frequency>('monthly');
+  const [kind, setKind] = useState<ExpenseKind>('one-time');
   const [amount, setAmount] = useState<number | null>(null);
 
   const submit = () => {
     if (!name.trim()) {
+      haptic('warning');
       message.warning('Add a name for the line item.');
       return;
     }
     if (amount == null || amount < 0) {
+      haptic('warning');
       message.warning('Enter a valid amount.');
       return;
     }
+    haptic('success');
     onAdd({
-      id: crypto.randomUUID(),
+      id: uuid(),
       name: name.trim(),
-      category,
-      frequency: category === 'recurring' ? frequency : undefined,
+      ...kindToFields(kind),
       amount,
     });
     setName('');
@@ -46,50 +50,41 @@ export function AddExpenseForm({ onAdd }: Props) {
     />
   );
 
-  const categorySelect = (
+  const kindSelect = (
     <Select
-      value={category}
-      onChange={setCategory}
-      options={[
-        { value: 'one-time', label: 'One-Time' },
-        { value: 'recurring', label: 'Recurring' },
-      ]}
-      style={isMobile ? { width: '100%' } : { width: 130 }}
-    />
-  );
-
-  const frequencySelect = category === 'recurring' && (
-    <Select
-      value={frequency}
-      onChange={setFrequency}
-      options={[
-        { value: 'monthly', label: 'Monthly' },
-        { value: 'annual', label: 'Annual' },
-      ]}
-      style={isMobile ? { width: '100%' } : { width: 120 }}
+      value={kind}
+      onChange={(v) => {
+        haptic('tap');
+        setKind(v);
+      }}
+      options={KIND_OPTIONS}
+      style={isMobile ? { width: '100%' } : { width: 140 }}
     />
   );
 
   const amountInput = (
     <InputNumber
-      placeholder="Amount"
+      placeholder="$ Amount"
       value={amount}
       onChange={(v) => setAmount(typeof v === 'number' ? v : null)}
       min={0}
-      prefix="$"
+      formatter={formatAmount}
+      parser={parseAmount}
       style={isMobile ? { width: '100%' } : { width: 140 }}
       onPressEnter={submit}
     />
   );
 
   if (isMobile) {
-    // Stack every field full-width so nothing overflows at ~375px.
+    // Name on its own row, then a stable two-field row — kind + amount — that
+    // never changes shape. Then the full-width add button. No conditional rows.
     return (
-      <Space direction="vertical" size={8} style={{ width: '100%' }}>
+      <Space direction="vertical" size={12} style={{ width: '100%' }}>
         {nameInput}
-        {categorySelect}
-        {frequencySelect}
-        {amountInput}
+        <div className="estimator-addrow__pair">
+          {kindSelect}
+          {amountInput}
+        </div>
         <Button type="primary" icon={<PlusOutlined />} onClick={submit} block>
           Add line item
         </Button>
@@ -100,8 +95,7 @@ export function AddExpenseForm({ onAdd }: Props) {
   return (
     <Space.Compact style={{ width: '100%' }} block>
       {nameInput}
-      {categorySelect}
-      {frequencySelect}
+      {kindSelect}
       {amountInput}
       <Button type="primary" icon={<PlusOutlined />} onClick={submit}>
         Add

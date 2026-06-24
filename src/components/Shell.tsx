@@ -3,6 +3,7 @@ import { Layout, Space, Switch, Typography } from "antd";
 import { SunOutlined, MoonOutlined } from "@ant-design/icons";
 import { OpsetteHeader } from "@/components/opsette-header";
 import { useThemeMode } from "@/lib/theme";
+import { haptic } from "@/lib/haptics";
 import AboutModal from "@/components/AboutModal";
 import PrivacyModal from "@/components/PrivacyModal";
 
@@ -39,7 +40,14 @@ export default function Shell({
           color: isDark ? "#94A3B8" : "#64748B",
         }}
       />
-      <Switch checked={isDark} onChange={toggle} size="small" />
+      <Switch
+        checked={isDark}
+        onChange={() => {
+          haptic('tap');
+          toggle();
+        }}
+        size="small"
+      />
       <MoonOutlined
         style={{
           opacity: isDark ? 1 : 0.4,

@@ -15,10 +15,10 @@ const fmt = (n: number) =>
 function Line({ label, value }: { label: string; value: number }) {
   return (
     <div className="estimator-summary-line">
-      <Text type="secondary" style={{ fontSize: 13 }}>
+      <Text type="secondary" className="estimator-summary-line__label">
         {label}
       </Text>
-      <Text style={{ fontSize: 14, fontVariantNumeric: 'tabular-nums' }}>{fmt(value)}</Text>
+      <Text className="estimator-summary-line__value">{fmt(value)}</Text>
     </div>
   );
 }
@@ -33,21 +33,18 @@ export function SummaryPanel({ expenses, footer }: Props) {
       <Line label="Annual recurring" value={totals.annual} />
 
       <div className="estimator-summary-total">
-        <Text strong style={{ fontSize: 13, color: '#2f4f46' }}>
+        <Text strong className="estimator-summary-total__label">
           Year 1 total
         </Text>
-        <Text
-          strong
-          style={{ fontSize: 22, color: '#2f4f46', fontVariantNumeric: 'tabular-nums' }}
-        >
+        <Text strong className="estimator-summary-total__value">
           {fmt(totals.year1)}
         </Text>
       </div>
-      <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>
+      <Text type="secondary" className="estimator-summary-formula">
         One-time + (monthly × 12) + annual
       </Text>
 
-      {footer && <div style={{ marginTop: 20 }}>{footer}</div>}
+      {footer && <div style={{ marginTop: 'var(--ops-space-xl)' }}>{footer}</div>}
     </Card>
   );
 }

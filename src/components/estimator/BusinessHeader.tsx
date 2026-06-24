@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Input, Select, Typography, Row, Col } from 'antd';
 import { industries } from '../../data/industries';
+import { haptic } from '@/lib/haptics';
 
 const { Text } = Typography;
 
@@ -20,8 +22,12 @@ export function BusinessHeader({
   onDocumentTitleChange,
   onIndustryChange,
 }: Props) {
+  // Explicitly control open state so the panel always closes on select — the
+  // default close-on-select doesn't fire reliably here on mobile.
+  const [industryOpen, setIndustryOpen] = useState(false);
+
   return (
-    <div style={{ marginBottom: 24 }}>
+    <div style={{ marginBottom: 'var(--ops-space-xl)' }}>
       <Text type="secondary" className="estimator-section-sub">
         Pick your industry to seed a realistic budget. Edit, add, or remove line items, then export
         a clean PDF for yourself, a client, your accountant, or investors.
@@ -29,7 +35,7 @@ export function BusinessHeader({
 
       <Row gutter={[16, 16]}>
         <Col xs={24} md={12}>
-          <Text strong style={{ display: 'block', marginBottom: 6 }}>
+          <Text strong className="estimator-field-label">
             Business name
           </Text>
           <Input
@@ -40,22 +46,28 @@ export function BusinessHeader({
           />
         </Col>
         <Col xs={24} md={12}>
-          <Text strong style={{ display: 'block', marginBottom: 6 }}>
+          <Text strong className="estimator-field-label">
             Industry
           </Text>
           <Select
             size="large"
-            showSearch
             placeholder="Select an industry"
             value={industryId ?? undefined}
-            onChange={onIndustryChange}
-            optionFilterProp="label"
+            open={industryOpen}
+            onDropdownVisibleChange={setIndustryOpen}
+            onChange={(id) => {
+              haptic('tap');
+              setIndustryOpen(false);
+              onIndustryChange(id);
+            }}
+            popupClassName="industry-dropdown"
+            listHeight={420}
             style={{ width: '100%' }}
             options={industries.map((i) => ({ value: i.id, label: i.label }))}
           />
         </Col>
         <Col xs={24}>
-          <Text strong style={{ display: 'block', marginBottom: 6 }}>
+          <Text strong className="estimator-field-label">
             Document title
           </Text>
           <Input
@@ -64,7 +76,7 @@ export function BusinessHeader({
             value={documentTitle}
             onChange={(e) => onDocumentTitleChange(e.target.value)}
           />
-          <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 6 }}>
+          <Text type="secondary" className="estimator-hint">
             Shown under the business name on the exported PDF — retitle it per client or project.
           </Text>
         </Col>

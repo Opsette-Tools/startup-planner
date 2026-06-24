@@ -212,15 +212,21 @@ export const industries: Industry[] = [
     id: 'healthcare',
     label: 'Healthcare / Wellness',
     expenses: [
-      o('Office build-out & exam rooms', 28000),
-      o('Medical equipment', 18000),
+      // Universal to any practice
       o('Initial supplies', 3500),
       o('Credentialing & licensing', 2200),
+      o('Professional A/V & connectivity setup', 1200),
       m('EHR / practice management', 350),
-      m('Office rent', 4200),
-      m('Cleaning & biohazard service', 280),
-      a('Malpractice insurance', 6500),
-      a('License & DEA renewals', 950),
+      m('HIPAA-compliant telehealth platform', 150),
+      m('Secure messaging & e-prescribing (eRx)', 90),
+      m('Patient billing / payment processing', 120),
+      a('Malpractice insurance (incl. telehealth rider)', 7200),
+      a('Multi-state licensing & DEA renewals', 1400),
+      // Physical-location items — delete these if you practice virtually
+      o('Office build-out & exam rooms (if physical location)', 28000),
+      o('Medical equipment (if physical location)', 18000),
+      m('Office rent (if physical location)', 4200),
+      m('Cleaning & biohazard service (if physical location)', 280),
     ],
   },
   {
